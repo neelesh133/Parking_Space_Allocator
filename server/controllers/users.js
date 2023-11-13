@@ -250,3 +250,38 @@ exports.sendResetEmail = async (req, res) => {
         return res.status(500).json({ msg: "Something went wrong.." })
     }
 }
+
+//when user clicks on the link sent to reset password and fill new password and sends requests
+exports.resetPassword = async (req, res) => {
+    const { error } = resetPassValidator.validate(req.body)
+    try {
+        if (error)
+            return res.status(400).json({ msg: error.details[0].message })
+
+        const {code,confirmPassword,password,currTimeStamp} = req.body
+    
+        //check if passwords match
+        if (password !== confirmPassword) {
+            console.log("No match")
+            return res.status(400).json({ msg: "Password don't match" })
+        }
+
+        //decode the token used
+        const decodedData = jwt.decode(code)
+
+        //if token is expired 
+        if(decodedData.exp*1000<currTimeStamp){
+            return res.status(400).json({msg:"Expired code, send an email again to get a new code"})
+        }
+
+        //hash the new password
+        const hashedPassword = passwordHash.generate(password)
+
+        //save the updated new password
+        await User.findByIdAndUpdate(decodedData.id,{password:hashedPassword})
+
+        return res.status(200).json({msg:"Password reset successfully, you can login now with new password!"})
+    } catch (err) {
+        return res.status(500).json({ msg: "Something went wrong.." })
+    }
+}
