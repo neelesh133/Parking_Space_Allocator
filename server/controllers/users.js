@@ -194,3 +194,18 @@ exports.signIn = async (req, res) => {
     }
 
 }
+
+exports.getCurrentUser = async (req, res) => {
+    console.log("loading user")
+    try {
+        if (!req.userId) {
+            return res.status(401).json({ msg: "Unauthorized" })
+        }
+        
+        //load the user from id and send to frontend
+        const user = await User.findById(req.userId)
+        return res.status(200).json({ firstName: user.firstName, lastName: user.lastName, userName: user.userName, _id: user._id, email: user.email, mobileNo: user.mobileNo, role: user.role, profilePic: user.profilePic })
+    } catch (err) {
+        return res.status(500).json({ msg: "Something went wrong.." })
+    }
+}
