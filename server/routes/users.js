@@ -10,7 +10,7 @@ router.post('/signIn',signIn)
 // router.post('/feedback',sendFeedback)
 // router.post('/profilePic',auth,setProfilePic)
 // router.post('/notifications/subscribe',auth,sendSubcription)
-// router.post('/resetEmail',sendResetEmail)
+router.post('/resetEmail',sendResetEmail)
 // router.post('/resetPassword',resetPassword)
 
 module.exports = router

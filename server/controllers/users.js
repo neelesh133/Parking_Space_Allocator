@@ -209,3 +209,44 @@ exports.getCurrentUser = async (req, res) => {
         return res.status(500).json({ msg: "Something went wrong.." })
     }
 }
+
+
+exports.sendResetEmail = async (req, res) => {
+    const { error } = resetMailValidator.validate(req.body)
+    try {
+        if (error)
+            return res.status(400).json({ msg: error.details[0].message })
+
+        //check if user exists with this email
+        const currUser = await User.findOne({ email: req.body.email })
+        if (!currUser) {
+            return res.status(404).json({ msg: "No user exists with this email, create an account first" })
+        }
+
+        const payload = {
+            email: currUser.email,
+            id: currUser._id
+        }
+        //create a token to authrize user to reset password
+        const resetCode = jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: "30m" })
+        const subject = "[Smart Parker] Link to Reset Your Password"
+
+        //send email to user with the code appended to link
+        const html = `
+                        To reset Your password follow the link below:
+                        Reset Your password
+                        ${process.env.REACT_APP_URL || "http://localhost:3000"}/resetPassword/${resetCode}
+                        If you haven't made this request. simply ignore the mail and no changes will be made
+        `
+        const receiverMail = req.body.email
+
+        console.log(receiverMail)
+    
+        await sendEmail2({ html, subject, receiverMail })
+
+
+        return res.status(200).json({ msg: "Mail sent with link to reset Your password" })
+    } catch (err) {
+        return res.status(500).json({ msg: "Something went wrong.." })
+    }
+}
