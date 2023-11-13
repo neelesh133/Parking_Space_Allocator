@@ -75,3 +75,50 @@ exports.sendOTP = async (req, res) => {
         return res.status(500).json({ msg: "Something went wrong.." })
     }
 }
+
+exports.resendOTP = async(req,res)=>{
+    console.log(req.body)
+
+    try{
+        if(!req.body.email){
+            return res.status(200).json({msg:"Please enter email"})
+        }
+
+        //check if the user already exists
+        const existingUser = await User.findOne({ email: req.body.email })
+
+        //if user already exists simply return
+        if (!existingUser) {
+            return res.status(400).json({ msg: "No account with this email ID, Create an Account first" })
+        }else if(existingUser.verified){
+            return res.status(200).json({msg: "You are already verified, you can login directly"})
+        }
+
+       //generate otp
+       const otpGenerated = generateOTP();
+       console.log("otp generated", otpGenerated)
+
+       if(!otpGenerated){
+        return res.status(400).json({msg:"Error in generating OTP"})
+       }
+
+       //send email to user with otp
+       const subject = "[Smart Parking] Welcome smart parker"
+        const html = `
+            Welcome to the club
+            You are just one step away from becoming a smart parker
+                Please enter the sign up OTP to get started
+                            ${otpGenerated}
+            If you haven't made this request. simply ignore the mail and no changes will be made`
+        const receiverMail = req.body.email
+        await sendEmail2({html,subject,receiverMail})
+
+        //store otp in user schema
+        await User.findByIdAndUpdate(existingUser._id,{otp:otpGenerated})
+        
+        return res.status(200).json({msg:"Vefiy OTP sent to your email To Access Your Account"})
+
+    }catch(err){
+        return res.status(500).json({ msg: "Something went wrong.." })
+    }
+}
