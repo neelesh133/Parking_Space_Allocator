@@ -122,3 +122,32 @@ exports.resendOTP = async(req,res)=>{
         return res.status(500).json({ msg: "Something went wrong.." })
     }
 }
+
+exports.verifyEmail = async (req, res) => {
+    console.log(req.body)
+
+    const { error } = verifyEmailValidator.validate(req.body);
+
+    try {
+        const { email, otp } = req.body;
+
+        //check if user even exists or not
+        const user = await User.findOne({ email })
+       
+        if (!user) {
+            return res.status(400).json({ msg: "Fill all the details first" })
+        }
+        console.log(user.otp, " and ", otp)
+        //check if received and generated otp's are same
+        if (user && user.otp !== otp) {
+            return res.status(400).json({ msg: "Invalid OTP" })
+        }
+
+        //updating user as verified
+        const updatedUser = await User.findByIdAndUpdate(user._id, { verified: true })
+
+        return res.status(200).json({ msg: "You're Registered Successfully, Login Now"  })
+    } catch (err) {
+        return res.status(500).json({ msg: "Something went wrong.." })
+    }
+}
