@@ -6,7 +6,7 @@ const {sendOTP,verifyEmail,signIn,getCurrentUser, sendFeedback, setProfilePic, s
 router.post('/sendOTP',sendOTP)
 router.post('/resendOTP',resendOTP)
 router.post('/verifyEmail',verifyEmail)
-// router.post('/signIn',signIn)
+router.post('/signIn',signIn)
 // router.post('/feedback',sendFeedback)
 // router.post('/profilePic',auth,setProfilePic)
 // router.post('/notifications/subscribe',auth,sendSubcription)

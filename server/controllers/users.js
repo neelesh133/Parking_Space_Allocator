@@ -151,3 +151,46 @@ exports.verifyEmail = async (req, res) => {
         return res.status(500).json({ msg: "Something went wrong.." })
     }
 }
+
+exports.signIn = async (req, res) => {
+    const { email, password } = req.body
+    const { error } = loginValidator.validate({ email, password })
+    console.log(error)
+    try {
+        if (error)
+            return res.status(400).json({ msg: error.details[0].message })
+
+        //check if user with this email even exists
+        const oldUser = await User.findOne({ email: email })
+        //if no user exists
+        if (!oldUser)
+            return res.status(404).json({ msg: "User doesn't exist" })
+        
+        //if user not verified tell to verify first
+        if (!oldUser.verified)
+            return res.status(400).json({ msg: "Please verify your account first! Check the otp sent on mail during registration" })
+        
+        //Verify if passowrd is correct
+        const isMatch = passwordHash.verify(password,oldUser.password)
+        
+        //if password doesn't match
+        if (!isMatch)
+            return res.status(400).json({ msg: "Invalid credentials" })
+        console.log("password matched")
+        
+        //sign a token for user to login into his account and send it frontend where token will be stored in localstorage
+        const payload = {
+            email: oldUser.email,
+            id: oldUser._id,
+            role:oldUser.role
+        }
+        const token = jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: "3h" })
+        
+        console.log("token signed")
+
+        return res.status(200).json(token)
+    } catch (err) {
+        return res.status(500).json({ msg: "Something went wrong.." })
+    }
+
+}
