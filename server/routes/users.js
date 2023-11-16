@@ -9,7 +9,7 @@ router.post('/verifyEmail',verifyEmail)
 router.post('/signIn',signIn)
 // router.post('/feedback',sendFeedback)
 // router.post('/profilePic',auth,setProfilePic)
-// router.post('/notifications/subscribe',auth,sendSubcription)
+// router.post('/notifications/subscribe',auth,sendSubcription)//h
 router.post('/resetEmail',sendResetEmail)
 // router.post('/resetPassword',resetPassword)
 
