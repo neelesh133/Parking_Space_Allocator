@@ -1,6 +1,13 @@
 const mongoose = require('mongoose')
 
-
+/* 
+This schema holds data for user details
+such as user's basic info,
+whether user verified or not,
+subscription object if subscribed for notification which will be used in future to send push notification,
+otp while registration,
+role of user or admin
+*/
 const UserSchema = mongoose.Schema({
     firstName:{
         type:String,

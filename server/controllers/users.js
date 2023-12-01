@@ -1,4 +1,4 @@
-const { sendOTPValidator, verifyEmailValidator, loginValidator,resetMailValidator, resetPassValidator } = require("../validators/joi-validator")
+const { sendOTPValidator, verifyEmailValidator, loginValidator, feedbackValidator, resetMailValidator, resetPassValidator } = require("../validators/joi-validator")
 const User = require('../models/User')
 const { generateOTP } = require("../Utils/generateOTP")
 const passwordHash = require('password-hash')
@@ -6,7 +6,8 @@ const jwt = require('jsonwebtoken')
 const sendEmail = require('../Utils/sendEmail')
 const sendEmail2 = require('../Utils/sendEmail2')
 const webpush = require('web-push')
-// const { instance } = require("../Utils/razorPayInstance")
+const { instance } = require("../Utils/razorPayInstance")
+
 
 exports.sendOTP = async (req, res) => {
     req.body.otp = "1"
@@ -17,8 +18,9 @@ exports.sendOTP = async (req, res) => {
         if (error)
             return res.status(400).json({ msg: error.details[0].message })
 
-        // const currTimeStamp= Date.now();
         const { email, password, confirmPassword,firstName,lastName,userName,mobileNo,selectedImg,currTimeStamp } = req.body
+
+
         //find existing user
         const existingUser = await User.findOne({ email: email })
 
@@ -117,7 +119,13 @@ exports.resendOTP = async(req,res)=>{
                             ${otpGenerated}
             If you haven't made this request. simply ignore the mail and no changes will be made`
         const receiverMail = req.body.email
-        await sendEmail2({html,subject,receiverMail})
+        const mailData = {
+            subject,
+            html,
+            receiverMail,
+            body:"xfgg"
+        }
+        await sendEmail(mailData)
 
         //store otp in user schema
         await User.findByIdAndUpdate(existingUser._id,{otp:otpGenerated})
@@ -201,6 +209,7 @@ exports.signIn = async (req, res) => {
 
 }
 
+
 exports.getCurrentUser = async (req, res) => {
     console.log("loading user")
     try {
@@ -216,6 +225,62 @@ exports.getCurrentUser = async (req, res) => {
     }
 }
 
+exports.sendFeedback = async (req, res) => {
+    const { error } = feedbackValidator.validate(req.body)
+    console.log(req.body)
+    try {
+        if (error) {
+            return res.status(400).json({ msg: error.details[0].message, severity: "error" })
+        }
+
+        //send self email using the details
+        const receiverMail = 'saxenaneelo133@gmail.com'
+        const html = `${req.body.feedback}`;
+        const subject = `Feedback from ${req.body.firstName} ${req.body.lastName}`
+
+        await sendEmail2({ html, subject, receiverMail })
+
+        return res.status(200).json({ msg: "Feedback submit successfully" })
+    } catch (err) {
+        return res.status(500).json({ msg: "Something went wrong.." })
+    }
+}
+
+exports.setProfilePic = async (req, res) => {
+    if (!req.userId)
+        return res.status(401).json({ msg: "Unauthorized" })
+
+    try {
+        
+        if (!req.body.selectedImg) {
+            return res.status(400).json({ msg: "Please upload a picture first" })
+        }
+
+        ///update profilePic with selectedImg
+        await User.findByIdAndUpdate(req.userId, { profilePic: req.body.selectedImg })
+        return res.status(200).json({ msg: "Profile image updated succesfully" })
+    } catch (err) {
+        return res.status(500).json({ msg: "Something went wrong.." })
+    }
+}
+
+exports.sendSubcription = async (req, res) => {
+    if (!req.userId) {
+        return res.status(201).json({ msg: "Unauthorized" })
+    }
+    try {
+        console.log(req.body)
+        const subcriptionData = req.body;
+        console.log(subcriptionData)
+        
+        //save the subscription data received in user schema
+        const updatedUser = await User.findOneAndUpdate({ _id: req.userId }, { subscription: subcriptionData }, { new: true })
+       
+        return res.status(200).json({ 'success': true })
+    } catch (e) {
+        return res.status(500).json({ msg: "Something went wrong.." })
+    }
+}
 
 exports.sendResetEmail = async (req, res) => {
     const { error } = resetMailValidator.validate(req.body)
@@ -246,9 +311,13 @@ exports.sendResetEmail = async (req, res) => {
         `
         const receiverMail = req.body.email
 
-        console.log(receiverMail)
-    
-        await sendEmail2({ html, subject, receiverMail })
+        const mailData = {
+            subject,
+            html,
+            receiverMail,
+            body:"xfgg"
+        }
+        await sendEmail(mailData)
 
 
         return res.status(200).json({ msg: "Mail sent with link to reset Your password" })
