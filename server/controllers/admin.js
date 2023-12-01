@@ -280,5 +280,106 @@ exports.getParkingLotHistory = async (req, res) => {
       return res.status(200).json({ msg: "Parking lots returned", bookedTimeSlots: bookedTimeSlots, parkingLotDetails: parkingLot })
   } catch (err) {
       return res.status(500).json({ msg: "Something went wrong" })
+ 
+    }
+}
+
+exports.deleteParkingLot = async (req, res) => {
+  if (!req.userId) {
+      return res.status(401).json({ msg: "Unauthorized" })
+  }
+  try {
+      const reqUser = await User.findById(req.userId)
+      console.log(reqUser)
+      if (reqUser.role !== "admin") {
+          return res.status(401).json({ msg: "Unauthorized" })
+      }
+
+      //check if ID of the lot which is to be deleted is passed
+      console.log(req.body)
+      if (!req.body.id) {
+          return res.status(400).json({ msg: "Please pass Parking Lot ID" })
+      }
+      
+      //get the details of parkingLot to be deleted
+      const updatedLot = await ParkingLot.findByIdAndUpdate(req.body.id,{isActive:false},{new:true})
+      console.log(updatedLot.name,updatedLot.parkingChargesBike,updatedLot.parkingChargesCar)
+
+      //finding the active timeslots booked in that particular parkingLot
+      const bookedTimeSlots = await BookedTimeSlot.find({
+          parkingLot: req.body.id,
+          endTime: {
+              $gte: Date.now()
+          },
+          cancelled:false,
+          paid:true
+      }, {
+          booker: 1, startTime: 1, endTime: 1, vehicleType: 1
+      })
+
+
+      //get the userIds of all those users who have an active slot booked
+      const userIds = bookedTimeSlots.map(slot => slot.booker)
+      console.log(userIds)
+      //get user details for sending them email
+      var users = await User.find({
+          _id: {
+              $in: userIds
+          }
+      }, {
+          firstName: 1, lastName: 1, email: 1
+      })
+      var userMap = {}
+      for (let user of users) {
+          userMap[user._id] = { _id: user._id, name: user.firstName + " " + user.lastName, email: user.email }
+      }
+      console.log(users)
+
+      //for each booked slot
+      for (let ts of bookedTimeSlots) {
+          
+          
+
+          //send email to user that their slot has been cancelled
+          if (ts.vehicleType === "Bike") {
+              const subject = "[Smart Parker] Booking Cancellation"
+              const charges = ((ts.endTime - ts.startTime) / (1000 * 60 * 60)) * updatedLot.parkingChargesBike
+              const html = `
+                  Dear ${userMap[ts.booker].name}, 
+                      We are sorry to inform you that due to some issues your parking booking for a Bike at ${updatedLot.name} between ${dayjs(ts.startTime).format('DD MMM hh:00 A')} and ${dayjs(ts.endTime).format('DD MMM hh:00 A')} has been cancelled. 
+                      ${updatedLot.type==="public"?"":`The charges for this parking you booked ${charges}, will be refunded to your account within 2 days`}
+              `
+              const receiverMail=userMap[ts.booker].email
+              await sendEmail2({html,subject,receiverMail})
+              //mark those slots as cancelled and adminCancelled as they are cancelledBy Admin
+              if(updatedLot.type==="public"){
+                  await BookedTimeSlot.findByIdAndUpdate(ts._id,{cancelled:true,adminCancelled:true,cancelledAt:Date.now(),refunded:true})
+              }else{
+              //mark those slots as cancelled and adminCancelled as they are cancelledBy Admin
+              await BookedTimeSlot.findByIdAndUpdate(ts._id,{cancelled:true,adminCancelled:true,cancelledAt:Date.now(),refunded:false})
+              }
+          } else {
+              const subject = "[Smart Parker] Booking Cancellation"
+              const charges = ((ts.endTime - ts.startTime) / (1000 * 60 * 60)) * updatedLot.parkingChargesCar
+              const html = `
+                  Dear ${userMap[ts.booker].name}, 
+                      We are sorry to inform you that due to some issues your parking booking for a Car at ${updatedLot.name} between ${dayjs(ts.startTime).format('DD MMM hh:00 A')} and ${dayjs(ts.endTime).format('DD MMM hh:00 A')} has been cancelled. 
+                      ${updatedLot.type==="public"?"":`The charges for this parking you booked ${charges}, will be refunded to your account within 2 days`}
+              `
+              const receiverMail=userMap[ts.booker].email
+              await sendEmail2({html,subject,receiverMail})
+              if(updatedLot.type==="public"){
+                  await BookedTimeSlot.findByIdAndUpdate(ts._id,{cancelled:true,adminCancelled:true,cancelledAt:Date.now(),refunded:true})
+              }else{
+              //mark those slots as cancelled and adminCancelled as they are cancelledBy Admin
+              await BookedTimeSlot.findByIdAndUpdate(ts._id,{cancelled:true,adminCancelled:true,cancelledAt:Date.now(),refunded:false})
+              }
+          }
+
+      }
+      
+      return res.status(200).json({ msg: "Parking Lot Made Inactive" })
+  } catch (err) {
+      return res.status(500).json({ msg: "Something went wrong.." })
   }
 }
