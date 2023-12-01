@@ -1,4 +1,4 @@
-const { sendOTPValidator, verifyEmailValidator, loginValidator, feedbackValidator, resetMailValidator, resetPassValidator } = require("../validators/joi-validator")
+const { sendOTPValidator, verifyEmailValidator, loginValidator,resetMailValidator, resetPassValidator } = require("../validators/joi-validator")
 const User = require('../models/User')
 const { generateOTP } = require("../Utils/generateOTP")
 const passwordHash = require('password-hash')
@@ -62,14 +62,20 @@ exports.sendOTP = async (req, res) => {
         //send the otp to user for verification
         const subject = "[Smart Parking] Welcome smart parker"
         const html = `
-            Welcome to the club
-                You are just one step away from becoming a smart parker
-                    Please enter the sign up OTP to get started
-                                ${otpGenerated}
-                If you haven't made this request. simply ignore the mail and no changes will be made`
+            <h3>Welcome to the club</h3><br></br>
+                <p>You are just one step away from becoming a smart parker
+                    Please enter the sign up OTP to get started.</p><br></br>
+                                <b><p>OTP- </p></b>${otpGenerated}<br></br>
+                                <p>If you haven't made this request. Simply ignore the mail and no changes will be made.`
         const receiverMail =email
 
-        await sendEmail2({ html, subject, receiverMail })
+        const mailData = {
+            subject,
+            html,
+            receiverMail,
+            body:"Please try again."
+        }
+        await sendEmail(mailData)
         return res.status(200).json({ msg: "Account Created, Verify OTP Sent to your email id to access your account" })
     } catch (err) {
         return res.status(500).json({ msg: "Something went wrong.." })
