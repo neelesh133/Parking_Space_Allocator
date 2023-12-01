@@ -403,3 +403,87 @@ exports.makeActiveParkingLot = async(req,res)=>{
       return res.status(500).json({ msg: "Something went wrong.." })
   }
 }
+
+exports.getCancelledSlots = async(req,res)=>{
+  if (!req.userId) {
+      return res.status(401).json({ msg: "Unauthorized" })
+  }
+  try{
+      const reqUser = await User.findById(req.userId)
+      console.log(reqUser)
+      if (reqUser.role !== "admin") {
+          return res.status(401).json({ msg: "Unauthorized" })
+      }
+      
+      //get all the slots which are cancelled
+      var cancelledTimeSlots = await BookedTimeSlot.find({
+          cancelled:true,
+          paid:true
+      })
+      console.log(cancelledTimeSlots)
+
+      //get the userIDs and parkingLot IDs of each booked slots
+      const userIds = []
+      const lotIds = []
+      for (var slot of cancelledTimeSlots) {
+          if (!userIds.includes(slot.booker)) {
+              userIds.push(slot.booker)
+          }
+          if(!lotIds.includes(slot.parkingLot)){
+              lotIds.push(slot.parkingLot)
+          }
+      }
+
+      //get users details such as name,email who have cancelled slot
+      var users = await User.find({
+          _id: {
+              $in: userIds
+          }
+
+      }, {
+          firstName: 1, lastName: 1,email:1
+      })
+      //get parkingLot details in which slot has cancelled
+      var parkingLots = await ParkingLot.find({
+          _id: {
+              $in: lotIds
+          }
+      },
+      {
+          name:1,parkingChargesBike:1,parkingChargesCar:1,type:1
+      })
+
+      
+      //create maps for quick access to details from IDs
+      var userMap = {}
+      for (let user of users) {
+          userMap[user._id] = { _id: user._id,  name:user.firstName + " " + user.lastName, email: user.email }
+      }
+
+      var parkingLotMap = {}
+      for(let lot of parkingLots){
+          parkingLotMap[lot._id] = lot
+      }
+      cancelledTimeSlots=cancelledTimeSlots.filter(slot=>parkingLotMap[slot.parkingLot].type==="private")
+
+      //put the details and calculated charge in cancelledTimeSlots
+      cancelledTimeSlots= cancelledTimeSlots.map(slot=>(
+          slot.vehicleType==="Bike"?(
+              {...slot._doc,charges:((slot.endTime - slot.startTime) / (1000 * 60 * 60))*parkingLotMap[slot.parkingLot].parkingChargesBike,
+                  booker:userMap[slot.booker],
+                  startTime:dayjs(slot.startTime).format('YYYY-MM-DD HH:00'),endTime:dayjs(slot.endTime).format('YYYY-MM-DD HH:00'),
+                  parkingLot:parkingLotMap[slot.parkingLot]}
+              ):
+              (
+              {...slot._doc,charges:((slot.endTime - slot.startTime) / (1000 * 60 * 60))*parkingLotMap[slot.parkingLot].parkingChargesCar,
+                  booker:userMap[slot.booker],
+                  startTime:dayjs(slot.startTime).format('YYYY-MM-DD HH:00'),endTime:dayjs(slot.endTime).format('YYYY-MM-DD HH:00'),
+                  parkingLot:parkingLotMap[slot.parkingLot]}
+              )
+      ))
+
+      return res.status(200).json({msg:"Cancelled slots returned",cancelledSlots:cancelledTimeSlots})
+  }catch(err){
+      return res.status(500).json({ msg: "Something went wrong.." })
+  }
+}
