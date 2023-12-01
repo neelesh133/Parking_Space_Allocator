@@ -383,3 +383,23 @@ exports.deleteParkingLot = async (req, res) => {
       return res.status(500).json({ msg: "Something went wrong.." })
   }
 }
+
+
+exports.makeActiveParkingLot = async(req,res)=>{
+  if (!req.userId) {
+      return res.status(401).json({ msg: "Unauthorized" })
+  }
+  try{
+      const reqUser = await User.findById(req.userId)
+      console.log(reqUser)
+      if (reqUser.role !== "admin") {
+          return res.status(401).json({ msg: "Unauthorized" })
+      }
+      console.log(req.body)
+      //Mark parking Lot as active
+      await ParkingLot.findByIdAndUpdate(req.body.id,{isActive:true})
+      return res.status(200).json({msg: "Parking Lot Active Again"})
+  }catch(err){
+      return res.status(500).json({ msg: "Something went wrong.." })
+  }
+}
