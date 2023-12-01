@@ -208,3 +208,77 @@ exports.getParkingLots = async (req, res) => {
       return res.status(500).json({ msg: "Something went wrong" })
   }
 }
+
+exports.getParkingLotHistory = async (req, res) => {
+  if (!req.userId) {
+      return res.status(401).json({ msg: "Unauthorized" })
+  }
+  try {
+      const reqUser = await User.findById(req.userId)
+      console.log(reqUser)
+      if (reqUser.role !== "admin") {
+          return res.status(401).json({ msg: "Unauthorized" })
+      }
+
+      //get all the bookedSlots which are booked in this parkingLot
+      var bookedTimeSlots = await BookedTimeSlot.find({
+          parkingLot: req.query._id,
+          paid:true
+      })
+
+      //get the details of parking Lot
+      const parkingLot = await ParkingLot.findById(req.query._id)
+      console.log(parkingLot)
+  
+      //if no slots booked till now in parkingLot
+      if (bookedTimeSlots.length == 0) {
+          return res.status(200).json({ msg: "Booked slots history returned for parking lot", bookedTimeSlots: bookedTimeSlots, parkingLotDetails: parkingLot })
+      }
+
+      //get all the userIds who have booker atleast one slot in that parkingLot
+      const userIds = []
+      for (var slot of bookedTimeSlots) {
+          if (!userIds.includes(slot.booker)) {
+              userIds.push(slot.booker)
+          }
+      }
+
+      //get the firstName and lastName of users who booked the slots
+      var users = await User.find({
+          _id: {
+              $in: userIds
+          }
+      }, {
+          firstName: 1, lastName: 1
+      })
+
+      //create a userMap to access the user details corresponding to a userId
+      var userMap = {}
+      for (let user of users) {
+          userMap[user._id] = { _id: user._id, name: user.firstName + " " + user.lastName }
+      }
+      console.log(userMap)
+
+
+      bookedTimeSlots = bookedTimeSlots.map(timeSlot => {
+          if (timeSlot.vehicleType == "Bike") {
+              //calculate charges
+              const charges = parkingLot.type==="public"?0:((timeSlot.endTime - timeSlot.startTime) / (1000 * 60 * 60)) * parkingLot.parkingChargesBike
+              //pas startTime and endTime as formatted strings
+              //put details of booker instead of just its ID
+              return { ...timeSlot._doc, charges: charges,startTime:dayjs(timeSlot.startTime).format('YYYY-MM-DD HH:00'),endTime:dayjs(timeSlot.endTime).format('YYYY-MM-DD HH:00'), booker: userMap[timeSlot.booker] }
+          } else {
+              //calculate charges
+              const charges = parkingLot.type==="public"?0:((timeSlot.endTime - timeSlot.startTime) / (1000 * 60 * 60)) * parkingLot.parkingChargesCar
+              //pas startTime and endTime as formatted strings
+              //put details of booker instead of just its ID
+              return { ...timeSlot._doc, charges: charges,startTime:dayjs(timeSlot.startTime).format('YYYY-MM-DD HH:00'),endTime:dayjs(timeSlot.endTime).format('YYYY-MM-DD HH:00'), booker: userMap[timeSlot.booker] }
+          }
+      })
+      console.log(bookedTimeSlots)
+
+      return res.status(200).json({ msg: "Parking lots returned", bookedTimeSlots: bookedTimeSlots, parkingLotDetails: parkingLot })
+  } catch (err) {
+      return res.status(500).json({ msg: "Something went wrong" })
+  }
+}
