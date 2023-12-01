@@ -141,3 +141,70 @@ exports.getUserHistory = async (req, res) => {
     return res.status(500).json({ msg: "Something went wrong" });
   }
 };
+
+exports.getParkingLotsNear = async (req, res) => {
+  if (!req.userId) {
+      return res.status(401).json({ msg: "Unauthorized" })
+  }
+  try {
+      const reqUser = await User.findById(req.userId)
+      console.log(reqUser)
+      if (reqUser.role !== "admin") {
+          return res.status(401).json({ msg: "Unauthorized" })
+      }
+
+      const { error } = latLonValidator.validate(req.query)
+      if (error) {
+          return res.status(400).json({ msg: error.details[0].message })
+      }
+
+      const { lat, lng } = req.query
+
+      var parkingLots = await ParkingLot.aggregate([
+
+          {
+              $geoNear: {
+                  "near": {
+                      "type": "Point",
+                      "coordinates": [lat, lng]
+                  },
+                  "distanceField": "distance",
+                  "spherical": true,
+                  "maxDistance": 7500
+              },
+          }
+      ])
+
+      parkingLots = parkingLots.map(lot => ({ name: lot.name }))
+
+      return res.status(200).json({ msg: "ParkingLots near location returned", parkingLots: parkingLots })
+  } catch (err) {
+      return res.status(500).json({ msg: "Something went wrong" })
+  }
+}
+
+
+//tested
+/*get Names of all parking lots */
+exports.getParkingLots = async (req, res) => {
+  console.log("Here")
+  if (!req.userId) {
+      return res.status(401).json({ msg: "Unauthorized" })
+  }
+  try {
+      const reqUser = await User.findById(req.userId)
+      console.log(reqUser)
+      if (reqUser.role !== "admin") {
+          return res.status(401).json({ msg: "Unauthorized" })
+      }
+
+      //fetch all the parkingLot Names and whether they are active
+      var parkingLots = await ParkingLot.find({}, { name: 1,isActive:1 });
+
+      parkingLots = parkingLots.map(lot => lot._doc)
+
+      return res.status(200).json({ msg: "ParkingLots returned", parkingLots: parkingLots })
+  } catch (err) {
+      return res.status(500).json({ msg: "Something went wrong" })
+  }
+}
