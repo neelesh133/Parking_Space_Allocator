@@ -168,3 +168,193 @@ exports.postParkingLot = async (req, res) => {
       return res.status(500).json({ msg: "Something went wrong.." });
     }
   };
+
+
+// when user searches for free parking lots around a location
+exports.getParkingLots = async (req, res) => {
+    if (!req.userId) {
+      return res.status(401).json({ msg: "Unauthorized" });
+    }
+    console.log("In get parking Lots");
+    const { error } = getParkingValidator.validate(req.query);
+  
+    try {
+      if (error) {
+        return res.status(400).json({ msg: error.details[0].message });
+      }
+  
+      //get the details
+      var { lat, lng, startTime, endTime, vehicleType, currTime } = req.query;
+      console.log(lat, lng, startTime, endTime, vehicleType, currTime);
+      //get timestamps
+      const storebookingStart = new Date(startTime).getTime();
+      const storebookingEnd = new Date(endTime).getTime();
+      const currTimeStamp = new Date(currTime).getTime();
+  
+      //check if this startTime and endTime pair are valid according to conditions
+      const startTimeDayjs = dayjs(startTime);
+      const endTimeDayjs = dayjs(endTime);
+      console.log(startTimeDayjs.minute(), endTimeDayjs.minute());
+      if (storebookingEnd - storebookingStart <= 0) {
+        return res.status(400).json({ msg: "Please Enter a Valid time frame" });
+      } else if (storebookingStart < currTimeStamp) {
+        return res.status(400).json({ msg: "Cannot book slot in past" });
+      } else if (
+        new Date(startTime).getDate() >
+        new Date(currTime).getDate() + 1
+      ) {
+        return res
+          .status(400)
+          .json({ msg: "Cannot book a slot starting after next day" });
+      } else if ((storebookingEnd - storebookingStart) / (1000 * 60 * 60) > 3) {
+        return res
+          .status(400)
+          .json({ msg: "Slot cannot be of more than three hours" });
+      }
+  
+      console.log("Now finding booked..");
+  
+      //convert to desired format
+      lat = parseFloat(lat);
+      lng = parseFloat(lng);
+  
+      //get hours when parking is going to start and end
+      let hrs1 = new Date(startTime).getHours();
+      let hrs2 = new Date(endTime).getHours();
+  
+      //query the database to get active parkinglots inside 2km circle of a location
+      var parkingLots = await ParkingLot.aggregate([
+        {
+          $geoNear: {
+            near: {
+              type: "Point",
+              coordinates: [lat, lng],
+            },
+            distanceField: "distance",
+            spherical: true,
+            maxDistance: 7500,
+          },
+        },
+        {
+          $match: {
+            isActive: true,
+          },
+        },
+      ]);
+  
+      //get only those parkinglots which will be open in whole timeframe of parking
+      parkingLots = parkingLots.filter((lot) => {
+        console.log(lot.openTime, lot.closeTime);
+        if (lot.openTime < lot.closeTime) {
+          if ((lot.openTime <= hrs1) & (hrs2 <= lot.closeTime)) {
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          if (
+            (lot.openTime <= hrs1 && hrs2 <= lot.closeTime) ||
+            (lot.openTime <= hrs1 + 24 && hrs2 + 24 <= lot.closeTime + 24) ||
+            (lot.openTime <= hrs1 && hrs2 <= lot.closeTime + 24)
+          ) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      });
+  
+      //get all the booked slots in the timeframe selected
+      //fetch only the parkingSlot which is booked
+      let bookedParkingSlotsIDs = await BookedTimeSlot.find(
+        {
+          startTime: {
+            $lt: storebookingEnd,
+          },
+          endTime: {
+            $gt: storebookingStart,
+          },
+          vehicleType: vehicleType,
+          cancelled: false,
+          paid: true,
+        },
+        { _id: 0, parkingSlot: 1 }
+      );
+  
+      bookedParkingSlotsIDs = bookedParkingSlotsIDs.map((slotID) =>
+        slotID.toString()
+      );
+      console.log(bookedParkingSlotsIDs);
+  
+      //This will contain all the parking lots whose at least one parking slot is free in the selected time frame
+      const freeParkingLots = [];
+  
+      const periodHours =
+        (storebookingEnd - storebookingStart) / (1000 * 60 * 60);
+      if (vehicleType == "Bike") {
+        parkingLots.forEach((lot) => {
+          //freeSlots are the one not included in bookedSlotIDs
+          //engagedSlots are the one included in bookedSlotIDs
+          const freeSlots = lot.bikeParkingSlots.filter(
+            (slot) => !bookedParkingSlotsIDs.includes(slot._id.toString())
+          );
+          const engagedSlots = lot.bikeParkingSlots.filter((slot) =>
+            bookedParkingSlotsIDs.includes(slot._id.toString())
+          );
+          //if at least one parking slot is free
+          if (freeSlots.length > 0) {
+            freeParkingLots.push({
+              id: lot._id,
+              name: lot.name,
+              charges:
+                lot.type === "public" ? 0 : lot.parkingChargesBike * periodHours,
+              lotImages: lot.lotImages,
+              freeSlots: freeSlots,
+              engagedSlots: engagedSlots,
+              address: lot.address,
+              location: lot.location.coordinates,
+              distance: lot.distance,
+              type: lot.type,
+            });
+          }
+        });
+      } else {
+        parkingLots.forEach((lot) => {
+          //freeSlots are the one not included in bookedSlotIDs
+          //engagedSlots are the one included in bookedSlotIDs
+          const freeSlots = lot.carParkingSlots.filter(
+            (slot) => !bookedParkingSlotsIDs.includes(slot._id.toString())
+          );
+          const engagedSlots = lot.carParkingSlots.filter((slot) =>
+            bookedParkingSlotsIDs.includes(slot._id.toString())
+          );
+          //if at least one parking slot is free
+          if (freeSlots.length > 0) {
+            freeParkingLots.push({
+              id: lot._id,
+              name: lot.name,
+              charges:
+                lot.type === "public" ? 0 : lot.parkingChargesCar * periodHours,
+              lotImages: lot.lotImages,
+              freeSlots: freeSlots,
+              engagedSlots: engagedSlots,
+              address: lot.address,
+              location: lot.location.coordinates,
+              distance: lot.distance,
+              type: lot.type,
+            });
+          }
+        });
+      }
+  
+      return res
+        .status(200)
+        .json({
+          msg: "Free parking lots returned",
+          freeParkingLots: freeParkingLots,
+        });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ msg: "Something went wrong.." });
+    }
+  };
