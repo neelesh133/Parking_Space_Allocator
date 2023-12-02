@@ -144,7 +144,7 @@ const Footer = () => {
                                 <InstagramIcon sx={styles.Icon} />
                             </Link>
                             <Link
-                                href="https://github.com/vdmondkr2002/Smart-Parking-Web-App"
+                                href="https://github.com"
                                 target="_blank"
                                 color="inherit"
                             >

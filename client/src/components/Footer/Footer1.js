@@ -201,7 +201,7 @@ const Footer1 = () => {
                                             sx={styles.linkName}
                                             fontSize="16px"
                                         >
-                                            smartparking678@gmail.com
+                                            parkingspaceallocator@gmail.com
                                         </Link>} />
                                     </ListItemButton>
                                 </ListItem>
@@ -217,7 +217,7 @@ const Footer1 = () => {
                                             sx={styles.linkName}
                                             fontSize="16px"
                                         >
-                                            +91 97020 63963
+                                            +91 8764965028
                                         </Link>} />
                                     </ListItemButton>
                                 </ListItem>
