@@ -8,7 +8,7 @@ import { useDispatch ,useSelector} from "react-redux";
 import {Link,Toolbar,Button,Menu,MenuItem,Avatar,Typography} from '@mui/material'
 
 /*components and constants */
-import logo from '../../images/Parking-logo.jpg'
+import logo from '../../images/Parking-logo.png'
 import { useTheme } from '@emotion/react';
 import { setLogout } from '../../state';
 

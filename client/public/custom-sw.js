@@ -1,5 +1,4 @@
 
-
 self.addEventListener('push',e=>{
     console.log(self.Notification)
     // self.Notification.requestPermission().then(res=>console.log(res))
