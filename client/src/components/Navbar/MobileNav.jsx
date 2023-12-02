@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, Toolbar, Button, Menu, MenuItem, Avatar, Typography, IconButton, Drawer, Grid } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 
-import logo from '../../images/Parking-logo.jpg'
+import logo from '../../images/Parking-logo.png'
 import { useTheme } from '@mui/material';
 import { setLogout } from '../../state';
 
