@@ -77,11 +77,11 @@ const ContactUs = () => {
                             <ListItem >
                                 <Typography variant="h5" sx={styles.listItemText}>Email ID: </Typography>
                                 <Link
-                                    href="mailto:smartparking678@gmail.com"
+                                    href="mailto:parkingspaceallocator@outlook.com"
                                     target="_blank"
                                     color="#012dfe"
                                 >
-                                   smartparking678@gmail.com
+                                   parkingspaceallocator@outlook.com
                                 </Link>
                             </ListItem>
                             <ListItem>
@@ -91,7 +91,7 @@ const ContactUs = () => {
                                     target="_blank"
                                     color="#012dfe"
                                 >
-                                   +91 97020 63963
+                                   +91 8764965028
                                 </Link>
                             </ListItem>
                             <ListItem >

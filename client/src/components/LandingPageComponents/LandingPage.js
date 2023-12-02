@@ -212,7 +212,7 @@ const LandingPage = () => {
                                     <Typography color="white" sx={{ fontWeight: "bold" }} variant='body' component='h3' >Fill the form below, your parking lot will be live after kyc verification by our team</Typography>
                                 </Grid>
                                 <Grid item sx={{textAlign:"center"}} xs={12} sm={3}>
-                                    <Button color="secondary" sx={{ margin: "auto"}} href="https://docs.google.com/forms/d/1rPDZoiogmNY2OVufewJVq9QHPd_ujmyZbku7o5phLak/viewform" target="_blank"  variant="contained">Fill Now</Button>
+                                    <Button color="secondary" sx={{ margin: "auto"}} href="https://forms.office.com/r/dduyPApd2Z" target="_blank"  variant="contained">Fill Now</Button>
                                 </Grid>
                             </Grid>
                         </Paper>

@@ -275,7 +275,7 @@ const Footer = () => {
                             key="Home"
                             sx={styles.name}
                         >
-                            SmartParker
+                            ParkIn
                         </Link>{" "}
                         {new Date().getFullYear()}
                         {". "}

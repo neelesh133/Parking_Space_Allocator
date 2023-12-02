@@ -231,7 +231,7 @@ const Footer1 = () => {
                                             fontSize="16px"
                                             sx={styles.linkName}
                                         >
-                                            @parkwheelz1
+                                            @parkin
                                         </Link>} />
                                     </ListItemButton>
                                 </ListItem>
@@ -245,7 +245,7 @@ const Footer1 = () => {
                                             fontSize="16px"
                                             sx={styles.linkName}
                                         >
-                                            Park Wheelz
+                                            ParkIn
                                         </Link>} />
                                     </ListItemButton>
                                 </ListItem>
@@ -271,7 +271,7 @@ const Footer1 = () => {
                                     <ListItemButton>
                                         <ListItemText primary={<Typography variant="h5"
                                         >
-                                            PARK WHEELZ
+                                            ParkIn
                                         </Typography>} />
                                     </ListItemButton>
                                 </ListItem>
@@ -280,7 +280,7 @@ const Footer1 = () => {
                                     <ListItemButton>
                                         <ListItemText primary={<Typography variant="h5"
                                         >
-                                            Mumbai, India
+                                            Lucknow, India
                                         </Typography>} />
                                     </ListItemButton>
                                 </ListItem>
