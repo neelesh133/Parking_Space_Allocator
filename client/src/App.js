@@ -19,15 +19,12 @@ import HomePage from './components/HomePageComponents/HomePage';
 import ProfilePage from './components/ProfilePageComponents/ProfilePage';
 import AddParkingLot from './components/AdminDashboardComponents/AddParkingLot';
 import ContactUs from './components/ContactUsComponents/ContactUs';
-import News from './components/NewsComponents/News';
 import AnalyzeHistory from './components/AdminDashboardComponents/AnalyzeHistory';
 import Footer1 from './components/Footer/Footer1';
 import RefundAnalysis from './components/AdminDashboardComponents/RefundAnalysis';
 import ResetPassword from './components/LoginPageComponents/ResetPassword';
 import PaymentSuccess from './components/PaymentsComponents/PaymentSuccess';
 import PaymentFailure from './components/PaymentsComponents/PaymentFailure';
-import PrivateUserRoute from './Utils/PrivateUserRoute';
-import PrivateAdminRoute from './Utils/PrivateAdminRoute';
 
 
 
@@ -88,7 +85,7 @@ const App = () => {
                         <Route exact path="/addparkingLot" element={<AddParkingLot />} />
 
                         <Route exact path="/contactus" element={<ContactUs />} />
-                        <Route exact path="/news" element={<News />} />
+                 
 
                         <Route exact path="/analysis" element={<AnalyzeHistory />} />
 

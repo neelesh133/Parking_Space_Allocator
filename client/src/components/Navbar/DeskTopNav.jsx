@@ -8,7 +8,7 @@ import { useDispatch ,useSelector} from "react-redux";
 import {Link,Toolbar,Button,Menu,MenuItem,Avatar,Typography} from '@mui/material'
 
 /*components and constants */
-import logo from '../../images/Parking-logo.jpg'
+import logo from '../../images/Salford.png'
 import { useTheme } from '@emotion/react';
 import { setLogout } from '../../state';
 
@@ -22,7 +22,7 @@ const DeskTopNav = ()=>{
 
     const styles = {
         logo:{
-            maxWidth: "2em",
+            maxWidth: "100rem",
             transition:"500ms",
             "&:hover":{
                 transform:"scale(1.1)"
@@ -85,7 +85,7 @@ const DeskTopNav = ()=>{
         <>
              <Toolbar sx={styles.root}>
                 <Link href="#" color="inherit">
-                    <img src={logo} width="60rem" alt="Logo"/>
+                    <img src={logo} width="100rem" height="40rem" alt="Logo"  />
                 </Link>
                 <div sx={styles.middle}>
                 
