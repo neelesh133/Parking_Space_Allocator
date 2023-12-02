@@ -1,20 +1,18 @@
 import { Button, CircularProgress, FormControl, FormControlLabel, FormLabel, Grid, Grow, IconButton, ImageList, ImageListItem, Paper, Radio, RadioGroup, TextField, Typography } from "@mui/material"
 import { Container } from "@mui/system"
-import { useEffect, useRef, useState } from "react"
+import { useEffect,  useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { styled } from '@mui/material/styles'
 import dayjs from 'dayjs'
-import { format } from 'date-fns'
 import Alert from '../../Utils/Alert'
 import { useTheme } from "@emotion/react"
-import { MapContainer, TileLayer, useMap, Marker, Popup, useMapEvents, MapConsumer } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css';
 import Compress from 'compress.js'
 import { asyncpostParkingLot, setAlert } from "../../state"
-import AddBox from "@mui/icons-material/AddBox"
 import CancelIcon from '@mui/icons-material/Cancel';
-import { DateTimePicker, LocalizationProvider, StaticTimePicker } from "@mui/x-date-pickers"
+import {LocalizationProvider, StaticTimePicker } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import PhotoCamera from "@mui/icons-material/PhotoCamera"
 import LocationOn from "@mui/icons-material/LocationOn"

@@ -101,7 +101,7 @@ const ContactUs = () => {
                                     target="_blank"
                                     color="#012dfe"
                                 >
-                                    @parkingwheelz
+                                    @parkin
                                 </Link>
                                 
                             </ListItem>
@@ -113,11 +113,10 @@ const ContactUs = () => {
                                 target="_blank"
                                 color="#012dfe"
                             >
-                                Park Wheelz
+                                Parkin
                             </Link>
                             </ListItem>
                         </List>
-                        {/* </Paper> */}
                     </Grid>
                     <Grid item xs={12}>
                         <Paper sx={styles.paper}>

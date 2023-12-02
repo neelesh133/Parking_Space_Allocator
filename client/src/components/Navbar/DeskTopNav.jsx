@@ -1,12 +1,11 @@
-import {useState,useEffect} from 'react';
+import {useState} from 'react';
 
 /*react-modules */
-import {Link as RouterLink,useNavigate,useLocation} from 'react-router-dom'
+import {Link as RouterLink,useNavigate} from 'react-router-dom'
 import { useDispatch ,useSelector} from "react-redux";
 
 /*Material UI */
 import {Link,Toolbar,Button,Menu,MenuItem,Avatar,Typography} from '@mui/material'
-
 
 /*components and constants */
 import logo from '../../images/Parking-logo.jpg'
@@ -40,7 +39,6 @@ const DeskTopNav = ()=>{
             "&:hover":{
                 color:"white"
             }
-            //  color:"white !important"
         },
         home:{
             marginLeft:"auto"
@@ -94,11 +92,6 @@ const DeskTopNav = ()=>{
                     <Button component={RouterLink} to={user._id?(user.role==="user"?"/home":"/admindb"):"/"} color="inherit" sx={styles.home}>
                         <Typography variant="h6" sx={styles.name}>
                             {user._id?(user.role==="user"?"Book Slot":"Dashboard"):"Home"}
-                        </Typography>
-                    </Button>
-                    <Button component={RouterLink} color="inherit" to="/news" sx={styles.about}>
-                        <Typography variant="h6" sx={styles.name}>
-                            News
                         </Typography>
                     </Button>
                     <Button component={RouterLink} color="inherit" to="/contactus" sx={styles.about}>

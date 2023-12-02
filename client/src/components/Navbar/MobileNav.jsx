@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link as RouterLink,useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from "react-redux";
 
 import { Link, Toolbar, Button, Menu, MenuItem, Avatar, Typography, IconButton, Drawer, Grid } from '@mui/material'
@@ -95,11 +95,6 @@ const MobileNav = ({ mobileDrawer, setMobileDrawer }) => {
                         <Grid item >
                             <Button component={RouterLink} to={user._id ? "/home" : "/"} variant="contained" color="primary" sx={styles.navItems}>
                                 <MenuItem>Home</MenuItem>
-                            </Button>
-                        </Grid>
-                        <Grid item >
-                            <Button component={RouterLink} color="primary" variant="contained" to="/news" sx={styles.navItems}>
-                                <MenuItem>News</MenuItem>
                             </Button>
                         </Grid>
                         <Grid item >
